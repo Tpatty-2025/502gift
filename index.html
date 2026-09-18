@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>神秘禮物箱</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: "Microsoft JhengHei", Arial, sans-serif;
+        background: #f7f7f5;
+        color: #444;
+    }
+
+    /* ===== 主畫面 ===== */
+
+    .container {
+        max-width: 1000px;
+        margin: auto;
+        padding: 40px 20px;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 38px;
+        margin: 10px 0 8px;
+        color: #555;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #999;
+        font-size: 17px;
+        margin-bottom: 40px;
+    }
+
+    /* ===== 編輯按鈕 ===== */
+
+    .edit-button {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        border: none;
+        background: white;
+        color: #666;
+        padding: 10px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        font-size: 15px;
+    }
+
+    .edit-button:hover {
+        background: #eeeeeb;
+    }
+
+    /* ===== 三個箱子 ===== */
+
+    .boxes {
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+        flex-wrap: wrap;
+    }
+
+    .box-card {
+        width: 280px;
+        background: white;
+        border-radius: 24px;
+        padding: 28px 20px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+        transition: 0.25s;
+    }
+
+    .box-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .box-icon {
+        font-size: 90px;
+        margin: 5px 0 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .box-icon:hover {
+        transform: scale(1.08);
+    }
+
+    .box-name {
+        font-size: 25px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .box-price {
+        color: #999;
+        margin-bottom: 18px;
+    }
+
+    .draw-button {
+        border: none;
+        border-radius: 999px;
+        padding: 11px 28px;
+        font-size: 17px;
+        cursor: pointer;
+        background: #555;
+        color: white;
+    }
+
+    .draw-button:hover {
+        opacity: 0.85;
+    }
+
+    /* 不同箱子的簡單區分 */
+
+    .small .box-name {
+        color: #75a96b;
+    }
+
+    .medium .box-name {
+        color: #638db8;
+    }
+
+    .large .box-name {
+        color: #9b72ad;
+    }
+
+    /* ===== 抽獎視窗 ===== */
+
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+    }
+
+    .modal-content {
+        width: min(90%, 460px);
+        background: white;
+        border-radius: 28px;
+        padding: 35px 25px;
+        text-align: center;
+    }
+
+    .modal-box {
+        font-size: 110px;
+        margin: 10px 0 20px;
+    }
+
+    .shaking {
+        animation: shake 0.12s infinite;
+    }
+
+    @keyframes shake {
+        0% {
+            transform: rotate(-6deg);
+        }
+
+        50% {
+            transform: rotate(6deg);
+        }
+
+        100% {
+            transform: rotate(-6deg);
+        }
+    }
+
+    .drawing {
+        font-size: 22px;
+        color: #888;
+    }
+
+    .result {
+        display: none;
+    }
+
+    .result-title {
+        font-size: 22px;
+        color: #999;
+        margin-bottom: 8px;
+    }
+
+    .result-name {
+        font-size: 32px;
+        font-weight: bold;
+        color: #555;
+        margin: 10px 0 25px;
+    }
+
+    .close-button {
+        border: none;
+        border-radius: 999px;
+        background: #555;
+        color: white;
+        padding: 10px 30px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    /* ===== 編輯視窗 ===== */
+
+    .edit-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 200;
+        overflow-y: auto;
+        padding: 30px 15px;
+    }
+
+    .edit-content {
+        max-width: 700px;
+        margin: auto;
+        background: white;
+        border-radius: 28px;
+        padding: 30px;
+    }
+
+    .edit-content h2 {
+        text-align: center;
+        margin-top: 0;
+        color: #555;
+    }
+
+    .edit-section {
+        background: #f7f7f5;
+        border-radius: 18px;
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+
+    .edit-section h3 {
+        margin-top: 0;
+    }
+
+    .small-title {
+        color: #75a96b;
+    }
+
+    .medium-title {
+        color: #638db8;
+    }
+
+    .large-title {
+        color: #9b72ad;
+    }
+
+    .prize-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .prize-row input {
+        flex: 1;
+        min-width: 0;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 16px;
+        outline: none;
+    }
+
+    .delete-prize {
+        border: none;
+        background: #e9e9e7;
+        border-radius: 10px;
+        width: 42px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .add-prize {
+        border: none;
+        background: white;
+        border: 1px dashed #bbb;
+        border-radius: 999px;
+        padding: 8px 18px;
+        cursor: pointer;
+        margin-top: 5px;
+    }
+
+    .edit-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .save-button,
+    .cancel-button {
+        border: none;
+        border-radius: 999px;
+        padding: 11px 28px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .save-button {
+        background: #555;
+        color: white;
+    }
+
+    .cancel-button {
+        background: #eee;
+        color: #555;
+    }
+
+    @media (max-width: 650px) {
+
+        h1 {
+            font-size: 30px;
+        }
+
+        .box-card {
+            width: 90%;
+            max-width: 320px;
+        }
+
+        .edit-button {
+            position: static;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .prize-row input {
+            font-size: 14px;
+        }
+    }
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- ==============================
+     主畫面
+================================ -->
+
+<div class="container">
+
+    <h1>🎁 神秘禮物箱</h1>
+
+    <div class="subtitle">
+        達到獎勵門檻，就可以抽一次
+    </div>
+
+
+    <div class="boxes">
+
+
+        <!-- 小箱 -->
+
+        <div class="box-card small">
+
+            <div class="box-icon"
+                 onclick="drawPrize('small')">
+                🎁
+            </div>
+
+            <div class="box-name"
+                 id="smallName">
+                小神秘箱
+            </div>
+
+            <div class="box-price"
+                 id="smallPrice">
+                $10～30
+            </div>
+
+            <button class="draw-button"
+                    onclick="drawPrize('small')">
+                開始抽獎
+            </button>
+
+        </div>
+
+
+        <!-- 中箱 -->
+
+        <div class="box-card medium">
+
+            <div class="box-icon"
+                 onclick="drawPrize('medium')">
+                🎁
+            </div>
+
+            <div class="box-name"
+                 id="mediumName">
+                中神秘箱
+            </div>
+
+            <div class="box-price"
+                 id="mediumPrice">
+                $30～60
+            </div>
+
+            <button class="draw-button"
+                    onclick="drawPrize('medium')">
+                開始抽獎
+            </button>
+
+        </div>
+
+
+        <!-- 大箱 -->
+
+        <div class="box-card large">
+
+            <div class="box-icon"
+                 onclick="drawPrize('large')">
+                🎁
+            </div>
+
+            <div class="box-name"
+                 id="largeName">
+                大神秘箱
+            </div>
+
+            <div class="box-price"
+                 id="largePrice">
+                $60～100
+            </div>
+
+            <button class="draw-button"
+                    onclick="drawPrize('large')">
+                開始抽獎
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==============================
+     抽獎視窗
+================================ -->
+
+<div class="modal"
+     id="drawModal">
+
+    <div class="modal-content">
+
+        <div class="modal-box"
+             id="modalBox">
+            🎁
+        </div>
+
+        <div class="drawing"
+             id="drawingText">
+            抽獎中……
+        </div>
+
+
+        <div class="result"
+             id="result">
+
+            <div class="result-title">
+                🎉 恭喜你！
+            </div>
+
+            <div class="result-name"
+                 id="resultName">
+                獎品
+            </div>
+
+        </div>
+
+
+        <button class="close-button"
+                onclick="closeDraw()">
+            關閉
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ==============================
+     編輯視窗
+================================ -->
+
+<div class="edit-modal"
+     id="editModal">
+
+    <div class="edit-content">
+
+        <h2>⚙️ 編輯神秘禮物</h2>
+
+
+        <!-- 小箱 -->
+
+        <div class="edit-section">
+
+            <h3 class="small-title">
+                🌱 小神秘箱
+            </h3>
+
+            <div id="smallPrizes"></div>
+
+            <button class="add-prize"
+                    onclick="addPrize('small')">
+                ＋ 新增獎品
+            </button>
+
+        </div>
+
+
+        <!-- 中箱 -->
+
+        <div class="edit-section">
+
+            <h3 class="medium-title">
+                💎 中神秘箱
+            </h3>
+
+            <div id="mediumPrizes"></div>
+
+            <button class="add-prize"
+                    onclick="addPrize('medium')">
+                ＋ 新增獎品
+            </button>
+
+        </div>
+
+
+        <!-- 大箱 -->
+
+        <div class="edit-section">
+
+            <h3 class="large-title">
+                👑 大神秘箱
+            </h3>
+
+            <div id="largePrizes"></div>
+
+            <button class="add-prize"
+                    onclick="addPrize('large')">
+                ＋ 新增獎品
+            </button>
+
+        </div>
+
+
+        <div class="edit-buttons">
+
+            <button class="cancel-button"
+                    onclick="closeEdit()">
+                取消
+            </button>
+
+            <button class="save-button"
+                    onclick="savePrizes()">
+                儲存
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+/* =====================================
+   預設獎品
+===================================== */
+
+let prizes = {
+
+    small: [
+        "可愛橡皮擦",
+        "造型鉛筆",
+        "可愛貼紙",
+        "小零食",
+        "便利貼"
+    ],
+
+    medium: [
+        "精美筆記本",
+        "螢光筆組",
+        "特色自動鉛筆",
+        "文具組",
+        "魔術方塊"
+    ],
+
+    large: [
+        "高級筆袋",
+        "豪華文具組",
+        "特色筆記本",
+        "DIY 手作材料包",
+        "100元神秘禮物"
+    ]
+
+};
+
+
+/* =====================================
+   從瀏覽器讀取資料
+===================================== */
+
+const savedPrizes =
+    localStorage.getItem("mysteryPrizes");
+
+
+if (savedPrizes) {
+
+    prizes = JSON.parse(savedPrizes);
+
+}
+
+
+/* =====================================
+   編輯按鈕
+===================================== */
+
+function openEdit() {
+
+    document.getElementById("editModal")
+        .style.display = "block";
+
+    renderEditList("small");
+    renderEditList("medium");
+    renderEditList("large");
+
+}
+
+
+/* 建立右上角編輯按鈕 */
+
+const editButton =
+    document.createElement("button");
+
+editButton.className =
+    "edit-button";
+
+editButton.innerText =
+    "⚙️ 編輯獎品";
+
+editButton.onclick =
+    openEdit;
+
+document.body.appendChild(editButton);
+
+
+/* =====================================
+   顯示編輯內容
+===================================== */
+
+function renderEditList(type) {
+
+    const container =
+        document.getElementById(
+            type + "Prizes"
+        );
+
+    container.innerHTML = "";
+
+
+    prizes[type].forEach(
+        (prize, index) => {
+
+            const row =
+                document.createElement("div");
+
+            row.className =
+                "prize-row";
+
+
+            row.innerHTML = `
+
+                <input
+                    type="text"
+                    value="${escapeHTML(prize)}"
+                    id="${type}-${index}"
+                >
+
+                <button
+                    class="delete-prize"
+                    onclick="deletePrize('${type}', ${index})">
+                    🗑
+                </button>
+
+            `;
+
+
+            container.appendChild(row);
+
+        }
+    );
+
+}
+
+
+/* =====================================
+   防止特殊文字造成問題
+===================================== */
+
+function escapeHTML(text) {
+
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =====================================
+   新增獎品
+===================================== */
+
+function addPrize(type) {
+
+    prizes[type].push("新獎品");
+
+    renderEditList(type);
+
+}
+
+
+/* =====================================
+   刪除獎品
+===================================== */
+
+function deletePrize(type, index) {
+
+    prizes[type].splice(index, 1);
+
+    renderEditList(type);
+
+}
+
+
+/* =====================================
+   儲存獎品
+===================================== */
+
+function savePrizes() {
+
+    ["small", "medium", "large"]
+        .forEach(type => {
+
+            const inputs =
+                document.querySelectorAll(
+                    "#" + type + "Prizes input"
+                );
+
+            prizes[type] =
+                Array.from(inputs)
+                    .map(input =>
+                        input.value.trim()
+                    )
+                    .filter(value => value !== "");
+
+        });
+
+
+    localStorage.setItem(
+        "mysteryPrizes",
+        JSON.stringify(prizes)
+    );
+
+
+    closeEdit();
+
+
+    alert("🎉 獎品已儲存！");
+
+}
+
+
+/* =====================================
+   關閉編輯
+===================================== */
+
+function closeEdit() {
+
+    document.getElementById("editModal")
+        .style.display = "none";
+
+}
+
+
+/* =====================================
+   抽獎
+===================================== */
+
+function drawPrize(type) {
+
+    if (prizes[type].length === 0) {
+
+        alert("這個箱子目前沒有獎品！");
+
+        return;
+
+    }
+
+
+    const modal =
+        document.getElementById("drawModal");
+
+    const box =
+        document.getElementById("modalBox");
+
+    const drawing =
+        document.getElementById("drawingText");
+
+    const result =
+        document.getElementById("result");
+
+
+    modal.style.display = "flex";
+
+
+    box.innerText = "🎁";
+
+    box.classList.add("shaking");
+
+    drawing.style.display = "block";
+
+    result.style.display = "none";
+
+
+    /* 隨機抽取 */
+
+    const randomIndex =
+        Math.floor(
+            Math.random() *
+            prizes[type].length
+        );
+
+
+    const selectedPrize =
+        prizes[type][randomIndex];
+
+
+    /* 抽獎動畫 */
+
+    setTimeout(function() {
+
+        box.classList.remove("shaking");
+
+        box.innerText = "🎉";
+
+        drawing.style.display = "none";
+
+        result.style.display = "block";
+
+        document.getElementById(
+            "resultName"
+        ).innerText =
+            selectedPrize;
+
+    }, 1800);
+
+}
+
+
+/* =====================================
+   關閉抽獎視窗
+===================================== */
+
+function closeDraw() {
+
+    document.getElementById("drawModal")
+        .style.display = "none";
+
+}
+
+</script>
+
+</body>
+</html>
